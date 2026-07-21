@@ -209,7 +209,7 @@ const Calendar = ({ chatProps }: CalendarProps) => {
               <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-lg flex items-center justify-center">
                 <Home className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
               </div>
-              <h1 className="text-lg md:text-xl font-bold text-foreground">Amela Reinigungsportal</h1>
+              <h1 className="text-lg md:text-xl font-bold text-foreground">Boris Reinigungsportal</h1>
             </div>
             <div className="flex items-center space-x-2 md:space-x-3">
               <div className="hidden sm:block">

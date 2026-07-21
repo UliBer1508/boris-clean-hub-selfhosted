@@ -207,7 +207,7 @@ const PutzkraeftePage = ({ chatProps }: PutzkraeftePageProps) => {
                   <Home className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-foreground">Amela Reinigungsportal</h1>
+                  <h1 className="text-xl font-bold text-foreground">Boris Reinigungsportal</h1>
                 </div>
               </div>
               <div className="flex items-center space-x-2 md:space-x-3">
@@ -306,7 +306,7 @@ const PutzkraeftePage = ({ chatProps }: PutzkraeftePageProps) => {
                 <Home className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Amela Reinigungsportal</h1>
+                <h1 className="text-xl font-bold text-foreground">Boris Reinigungsportal</h1>
               </div>
             </div>
             <div className="flex items-center space-x-2 md:space-x-3">

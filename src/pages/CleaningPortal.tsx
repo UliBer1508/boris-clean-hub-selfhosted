@@ -75,7 +75,7 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
   const [staffFilter, setStaffFilter] = useState<string>('all');
   const [houseFilter, setHouseFilter] = useState<HouseFilter>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
-  // Portal zeigt nur Amela-zugewiesene Reinigungen
+  // Portal zeigt nur Boris-zugewiesene Reinigungen
   const [providerFilter] = useState<ProviderFilter>(AMELA_PROVIDER_ID);
   const [showReminderPopup, setShowReminderPopup] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
@@ -111,7 +111,7 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
   // Realtime: NUR INSERT für Bell-Badge/Toast. Datenrefresh + UPDATE-Events erledigt useBookings.
   useEffect(() => {
     const channel = supabase
-      .channel('amela-portal-notifications')
+      .channel('boris-portal-notifications')
       .on(
         'postgres_changes',
         {
@@ -278,7 +278,7 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
                 <Home className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-lg md:text-xl font-bold text-foreground">Amela Reinigungsportal</h1>
+                <h1 className="text-lg md:text-xl font-bold text-foreground">Boris Reinigungsportal</h1>
               </div>
             </div>
             <div className="flex items-center space-x-2 md:space-x-3">
