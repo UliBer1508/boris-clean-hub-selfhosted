@@ -13,7 +13,7 @@ import { useCleaningStaff } from '@/hooks/useCleaningStaff';
 import PWAInstallButton from '@/components/PWAInstallButton';
 import PWAStatusBar from '@/components/PWAStatusBar';
 import { usePWA } from '@/hooks/usePWA';
-import ReminderSettingsPopover from '@/components/amela/ReminderSettingsPopover';
+import ReminderSettingsPopover from '@/components/boris/ReminderSettingsPopover';
 import PullToRefresh from '@/components/PullToRefresh';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay,

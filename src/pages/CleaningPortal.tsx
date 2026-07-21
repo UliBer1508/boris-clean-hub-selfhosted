@@ -15,9 +15,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BookingCardSettings, { useBookingCardConfig } from "@/components/BookingCardSettings";
-import AmelaEntryRow from "@/components/amela/AmelaEntryRow";
-import CleaningReminderBanner from "@/components/amela/CleaningReminderBanner";
-import ReminderSettingsPopover from "@/components/amela/ReminderSettingsPopover";
+import BorisEntryRow from "@/components/boris/BorisEntryRow";
+import CleaningReminderBanner from "@/components/boris/CleaningReminderBanner";
+import ReminderSettingsPopover from "@/components/boris/ReminderSettingsPopover";
 import { ChatButton } from '@/components/PortalChat';
 import { usePortalMessages } from '@/hooks/usePortalMessages';
 import {
@@ -458,7 +458,7 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
               </Card>
             ) : (
                currentFilteredEntries.map((entry, idx) => (
-                <AmelaEntryRow
+                <BorisEntryRow
                   key={entry.data.id}
                   entry={entry}
                   staff={staff}
