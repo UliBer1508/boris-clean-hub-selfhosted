@@ -202,7 +202,10 @@ export const useBookings = () => {
         .update({
           status: newStatus,
           completed_at: newStatus === 'completed' ? new Date().toISOString() : null,
-          status_changed_by: 'Amela',
+          // Wer die Änderung vorgenommen hat — landet in service_tasks und wird
+          // in der Hausverwaltung als "Geändert von: …" angezeigt.
+          // BORIS-PORTAL: muss 'Boris' sein, nicht 'Amela' (kopiertes Repo).
+          status_changed_by: 'Boris',
           status_changed_at: new Date().toISOString()
         })
         .eq('id', taskId);
