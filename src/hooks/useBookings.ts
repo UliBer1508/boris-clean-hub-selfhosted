@@ -6,6 +6,9 @@ import { isWithinTimeRange } from '@/utils/date';
 import { sanitizeSearchTerm } from '@/utils/validation';
 import { getGuestName } from '@/lib/guestHelpers';
 import { format } from 'date-fns';
+// Provider dieses Portals (Boris). Wird für den Badge-Zähler gebraucht,
+// damit er dieselben Reinigungen zählt, die die Liste anzeigt.
+import { AMELA_PROVIDER_ID as PORTAL_PROVIDER_ID } from '@/constants/app';
 
 export const useBookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -377,11 +380,28 @@ export const useBookings = () => {
     });
   }, [combinedEntries]);
 
+  // Zähler für den Badge in der Navigation.
+  //
+  // KORRIGIERT 21.07.2026: Zählte vorher ALLE service_tasks aller geladenen
+  // Buchungen plus alle Standalone-Reinigungen — ohne Provider-Filter. Im
+  // Boris-Portal stand deshalb 55, obwohl nur 3 Reinigungen auf Boris laufen.
+  // Die angezeigte LISTE filtert korrekt über filteredEntries
+  // (task.provider_id === providerFilter); nur der Zähler lief daran vorbei.
+  //
+  // Dieselbe Bedingung wie in filteredEntries, damit Liste und Badge nicht
+  // auseinanderlaufen können.
   const totalCleaningTasks = useMemo(() => {
-    const bookingTasks = bookings.reduce((total, booking) => 
-      total + (booking.service_tasks?.length || 0), 0
+    const bookingTasks = bookings.reduce(
+      (total, booking) =>
+        total +
+        (booking.service_tasks?.filter(
+          (task: any) => task.provider_id === PORTAL_PROVIDER_ID
+        ).length || 0),
+      0
     );
-    const standaloneTasks = standaloneCleanings.length;
+    const standaloneTasks = standaloneCleanings.filter(
+      (cleaning: any) => cleaning.provider_id === PORTAL_PROVIDER_ID
+    ).length;
     return bookingTasks + standaloneTasks;
   }, [bookings, standaloneCleanings]);
 
