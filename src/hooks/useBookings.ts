@@ -8,7 +8,7 @@ import { getGuestName } from '@/lib/guestHelpers';
 import { format } from 'date-fns';
 // Provider dieses Portals (Boris). Wird für den Badge-Zähler gebraucht,
 // damit er dieselben Reinigungen zählt, die die Liste anzeigt.
-import { AMELA_PROVIDER_ID as PORTAL_PROVIDER_ID } from '@/constants/app';
+import { PROVIDER_ID as PORTAL_PROVIDER_ID } from '@/constants/app';
 
 export const useBookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);

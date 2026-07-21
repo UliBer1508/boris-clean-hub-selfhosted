@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
-import { AMELA_PROVIDER_ID } from '@/constants/app';
+import { PROVIDER_ID } from '@/constants/app';
 
 export interface PortalMessage {
   id: string;
@@ -21,12 +21,12 @@ export const usePortalMessages = () => {
 
   // Nachrichten laden
   const { data: messages = [], isLoading } = useQuery({
-    queryKey: ['portal-messages', AMELA_PROVIDER_ID],
+    queryKey: ['portal-messages', PROVIDER_ID],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('provider_messages')
         .select('*')
-        .eq('provider_id', AMELA_PROVIDER_ID)
+        .eq('provider_id', PROVIDER_ID)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -36,12 +36,12 @@ export const usePortalMessages = () => {
 
   // Ungelesene Admin-Nachrichten zählen
   const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['portal-unread-count', AMELA_PROVIDER_ID],
+    queryKey: ['portal-unread-count', PROVIDER_ID],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('provider_messages')
         .select('*', { count: 'exact', head: true })
-        .eq('provider_id', AMELA_PROVIDER_ID)
+        .eq('provider_id', PROVIDER_ID)
         .neq('sender_type', 'provider')
         .eq('is_read', false);
 
@@ -64,7 +64,7 @@ export const usePortalMessages = () => {
       const { data, error } = await supabase
         .from('provider_messages')
         .insert({
-          provider_id: AMELA_PROVIDER_ID,
+          provider_id: PROVIDER_ID,
           sender_type: 'provider',
           message,
           related_task_id: relatedTaskId,
@@ -76,7 +76,7 @@ export const usePortalMessages = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portal-messages', AMELA_PROVIDER_ID] });
+      queryClient.invalidateQueries({ queryKey: ['portal-messages', PROVIDER_ID] });
     },
     onError: (error) => {
       console.error('Error sending message:', error);
@@ -94,15 +94,15 @@ export const usePortalMessages = () => {
       const { error } = await supabase
         .from('provider_messages')
         .update({ is_read: true })
-        .eq('provider_id', AMELA_PROVIDER_ID)
+        .eq('provider_id', PROVIDER_ID)
         .neq('sender_type', 'provider')
         .eq('is_read', false);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portal-messages', AMELA_PROVIDER_ID] });
-      queryClient.invalidateQueries({ queryKey: ['portal-unread-count', AMELA_PROVIDER_ID] });
+      queryClient.invalidateQueries({ queryKey: ['portal-messages', PROVIDER_ID] });
+      queryClient.invalidateQueries({ queryKey: ['portal-unread-count', PROVIDER_ID] });
     },
   });
 
@@ -116,11 +116,11 @@ export const usePortalMessages = () => {
           event: '*',
           schema: 'public',
           table: 'provider_messages',
-          filter: `provider_id=eq.${AMELA_PROVIDER_ID}`,
+          filter: `provider_id=eq.${PROVIDER_ID}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['portal-messages', AMELA_PROVIDER_ID] });
-          queryClient.invalidateQueries({ queryKey: ['portal-unread-count', AMELA_PROVIDER_ID] });
+          queryClient.invalidateQueries({ queryKey: ['portal-messages', PROVIDER_ID] });
+          queryClient.invalidateQueries({ queryKey: ['portal-unread-count', PROVIDER_ID] });
         }
       )
       .subscribe();
