@@ -1,0 +1,155 @@
+# Boris Reinigungsportal — Zweck, Ablauf & Zusammenspiel
+
+> Stand: 21.07.2026
+> Repo: `boris-clean-hub-selfhosted` · gehostet auf `boris-clean-hub-selfhosted.vercel.app`
+> Entstanden als Kopie von `amela-clean-hub-selfhosted` (GitHub-Template, 21.07.2026).
+> Diese Datei beschreibt, **wofür** das Portal da ist und **wie** es genutzt wird.
+> Sie ist die maßgebliche Beschreibung des Portal-Zwecks.
+
+---
+
+## 1. Wofür ist dieses Portal?
+
+Das Boris-Portal ist die App für **Boris, die zweite Reinigungskraft**.
+
+Boris ist **nicht** der Standard-Dienstleister. Er kommt in zwei Fällen zum Einsatz:
+
+1. **Einspringen**, wenn Amela keine Zeit hat (Urlaub, Krankheit, Terminkollision)
+2. **Fensterreinigung** — die großen Fenster in beiden Chalets
+
+Daraus folgt: Boris hat typischerweise **wenige** Reinigungen, nicht den Regelbetrieb.
+Wer welche Reinigung übernimmt, entscheidet die Zuweisung in der Hausverwaltung
+(`service_tasks.provider_id`).
+
+> **Wichtig für die Anzeige:** Das Portal zeigt **ausschließlich** Reinigungen mit
+> `provider_id = 193a013f-45ed-4621-b95f-b449aa79c2c9` (Boris). Amelas Reinigungen
+> sind unsichtbar — und umgekehrt.
+
+---
+
+## 2. Wie entsteht eine Reinigung?
+
+**Reinigungen werden NICHT im Boris-Portal angelegt.** Sie entstehen in der
+**Hausverwaltung** — genau wie bei Amela:
+
+- Für jede Buchung wird automatisch eine Reinigung angelegt (Termin =
+  Check-in-Tag des ankommenden Gastes).
+- Reinigungen **ohne Buchung** (Generalreinigung am Saisonende, Vorbereitung vor
+  Saisonstart, **Fensterreinigung**) werden ebenfalls dort angelegt — ohne
+  `booking_id`. Siehe `docs/CODE-INDEX.md` der Hausverwaltung, Abschnitt
+  „Reinigung OHNE Buchung".
+- Die Zuweisung an Boris erfolgt über `provider_id` in der Reinigungskarte.
+
+### Fensterreinigung
+
+Fensterputzen ist **kein eigener Servicetyp**. Das Enum `service_type` kennt nur
+`cleaning` und `laundry`. Fensterreinigung ist fachlich eine Reinigung und wird
+wie eine behandelt — auch abrechnungsseitig über Boris' Stundensatz (36 €/Std).
+Der Anlass steht in `service_tasks.notes`.
+
+Kommt Fensterputzen zu einer normalen Buchungsreinigung dazu, sind das schlicht
+mehr `cleaning_hours` auf demselben Task — keine zweite Aufgabe.
+
+---
+
+## 3. Was Boris im Portal tut
+
+- Reinigungen mit Terminen **ansehen**
+- **Reinigungstag anpassen**, wenn Buchungen auseinanderliegen
+- **Reinigungsstatus** setzen (geplant → in Arbeit → abgeschlossen)
+- sehen, **wann die Wäsche geliefert** wird (aus dem Teuni-System)
+- Notizen / Checkliste zur Reinigung
+
+### Was Boris NICHT tut
+
+- Keine Buchungen anlegen oder ändern
+- Keine Reinigungen erstellen (kommen aus der Hausverwaltung)
+- Keine Wäschebestellungen
+- Keine Putzkräfte verwalten
+
+---
+
+## 4. Zusammenspiel mit den anderen Systemen
+
+```
+        Hausverwaltung
+   (legt Buchung + Reinigung an,
+    weist provider_id zu)
+                │
+        ┌───────┴────────┐
+        ▼                ▼
+  AMELA-Portal      BORIS-Portal        TEUNI-Portal (Wäsche)
+  provider_id=      provider_id=        liefert die Wäsche
+  9de6e071…         193a013f…           passend zum Reinigungstag
+        │                │                       │
+        └────────────────┴───────────────────────┘
+              gemeinsame Datenbank
+              usblrulkcgucxtkhugck
+```
+
+Alle drei Portale greifen auf **dieselbe Datenbank** zu. Es gibt keine separate
+Schnittstelle — die Abstimmung läuft über die gemeinsamen Tabellen
+`service_tasks` (Reinigung) und `linen_orders` (Wäsche), beide an die Buchung
+gekoppelt.
+
+**Die Trennung zwischen Amela und Boris erfolgt ausschließlich über
+`provider_id`.** Es gibt keine getrennten Tabellen, keine Mandantentrennung auf
+DB-Ebene. Fällt der Filter aus, sieht jedes Portal alles.
+
+---
+
+## 5. Was im Portal vorhanden, aber (noch) nicht reduziert ist
+
+Das Portal ist eine **vollständige Kopie** des Amela-Portals. Die Reduktion auf
+die für Boris nötigen Funktionen steht noch aus (Stand 21.07.2026).
+
+Vorhanden und erreichbar, aber für Boris nicht vorgesehen:
+
+| Funktion | Route / Datei | Warum ungenutzt |
+|---|---|---|
+| **Putzkräfte verwalten** | `/putzkraefte`, `PutzkraeftePage.tsx` | Boris stellt kein Personal ein. **Achtung:** `useCleaningStaff.ts` liest `cleaning_staff` **ungefiltert** — dort steht nur Amela mit E-Mail und Telefonnummer. Boris sähe ihre Kontaktdaten. |
+| **Kalenderansicht** | `/calendar`, `Calendar.tsx` | Für wenige Termine unnötig |
+| **Chat mit Max** | `PortalChat.tsx` | In Version 1 bewusst nicht aktiviert |
+| **Buchungskarte** | `BorisBookingInfoCard.tsx` | Boris braucht die Reinigungskarte; die Wäschezeile soll dorthin wandern |
+| **Standalone-Reinigung anlegen** | `AddStandaloneCleaningDialog.tsx` | Reinigungen kommen aus der Hausverwaltung |
+
+> **Für Claude / Entwickler:** Die Existenz einer Komponente sagt nichts über ihre
+> tatsächliche Nutzung. Im Zweifel nachfragen.
+
+---
+
+## 6. Konfiguration (Vercel)
+
+| Variable | Wert | Zweck |
+|---|---|---|
+| `VITE_AMELA_PROVIDER_ID` | `193a013f-45ed-4621-b95f-b449aa79c2c9` | Boris' Provider-ID |
+| `VITE_PORTAL_EMAIL` | `boris@portal.local` | Auto-Login |
+| `VITE_PORTAL_PASSWORD` | *(gesetzt)* | Auto-Login |
+
+Der Login läuft **still im Hintergrund** (`usePortalAuth.ts`): Boris meldet sich
+nicht selbst an, das Portal loggt sich mit diesen Zugangsdaten ein. Schlägt das
+fehl, bleibt die Seite leer — die Meldung steht nur in der Browser-Konsole
+(`[Portal] Auto-login failed:`).
+
+> **Der Name `VITE_AMELA_PROVIDER_ID` ist historisch** und stammt aus dem
+> Ursprungs-Repo. Der Wert ist Boris. Umbenennen auf `VITE_PROVIDER_ID` ist für
+> Version 2 vorgemerkt (15 Fundstellen).
+
+**Fallback-Sicherung:** `src/constants/app.ts` hat als Rückfall Boris' ID
+hinterlegt, **nicht** Amelas. Fehlt die Umgebungsvariable, zeigt das Portal
+weiterhin Boris' Reinigungen statt still auf Amela umzuschalten.
+
+**Portal-Link in der Hausverwaltung:** `service_providers.portal_token` für
+Boris = `https://boris-clean-hub-selfhosted.vercel.app` (aktualisiert 21.07.2026).
+
+---
+
+## 7. Bekannte offene Punkte
+
+- **Frontend-Reduktion** steht aus (siehe Abschnitt 5)
+- **Boris hat keinen Eintrag in `cleaning_staff`** — nur Amela steht dort
+- **`NotificationSettings.tsx` und `useNotificationPreferences.ts` verwenden
+  verschiedene Tabellen** (`notification_preferences` vs.
+  `boris_notification_preferences`). Für Version 1 unverändert übernommen.
+- **Boris hat kein Max-Chat** — Terminfragen erreichen ihn nur über den
+  Erinnerungs-Banner, nicht über eine Nachricht mit Antwortmöglichkeit
