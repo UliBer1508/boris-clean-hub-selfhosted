@@ -36,7 +36,11 @@ const NotificationSettings = () => {
     fetchPreferences();
   }, []);
 
-  const fetchPreferences = async (userName = 'Amela') => {
+  // HINWEIS (21.07.2026): Diese Komponente liest/schreibt `notification_preferences`,
+  // der Hook useNotificationPreferences aber `boris_notification_preferences`.
+  // Zwei verschiedene Tabellen — für Version 1 unverändert übernommen, damit
+  // nichts kaputtgeht. Zusammenführen ist für Version 2 vorgemerkt.
+  const fetchPreferences = async (userName = 'Boris') => {
     try {
       const { data, error } = await supabase
         .from('notification_preferences')
