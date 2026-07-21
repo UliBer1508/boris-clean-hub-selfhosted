@@ -6,7 +6,7 @@ import { useBookings } from '@/hooks/useBookings';
 import { useHouses } from '@/hooks/useHouses';
 import { useCleaningStaff } from '@/hooks/useCleaningStaff';
 import { supabase } from '@/integrations/supabase/client';
-import { AMELA_PROVIDER_ID } from '@/constants/app';
+import { PROVIDER_ID } from '@/constants/app';
 import PWAInstallButton from '@/components/PWAInstallButton';
 import PWAStatusBar from '@/components/PWAStatusBar';
 import { usePWA } from '@/hooks/usePWA';
@@ -76,7 +76,7 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
   const [houseFilter, setHouseFilter] = useState<HouseFilter>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   // Portal zeigt nur Boris-zugewiesene Reinigungen
-  const [providerFilter] = useState<ProviderFilter>(AMELA_PROVIDER_ID);
+  const [providerFilter] = useState<ProviderFilter>(PROVIDER_ID);
   const [showReminderPopup, setShowReminderPopup] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [newTaskCount, setNewTaskCount] = useState(0);
@@ -118,7 +118,7 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
           event: 'INSERT',
           schema: 'public',
           table: 'service_tasks',
-          filter: `provider_id=eq.${AMELA_PROVIDER_ID}`,
+          filter: `provider_id=eq.${PROVIDER_ID}`,
         },
         (payload) => {
           console.log('🆕 Neuer Reinigungsauftrag:', payload);
