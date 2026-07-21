@@ -7,6 +7,9 @@ this file.
 > `amela-clean-hub-selfhosted`. Alle Einträge vor diesem Datum stammen aus dem
 > Ursprungs-Repo und beschreiben die gemeinsame Codebasis.
 
+
+
+---
 ---
 
 ## [Boris 1.0.0] - 2026-07-21
