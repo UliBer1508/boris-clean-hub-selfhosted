@@ -15,7 +15,7 @@ export function useNotificationPreferences() {
       const { data, error: fetchError } = await supabase
         .from('boris_notification_preferences')
         .select('*')
-        .eq('user_name', 'Amela')
+        .eq('user_name', 'Boris')
         .maybeSingle();
 
       if (fetchError) throw fetchError;
@@ -26,7 +26,7 @@ export function useNotificationPreferences() {
         // Default preferences if none exist
         setPreferences({
           id: '',
-          user_name: 'Amela',
+          user_name: 'Boris',
           toast_notifications: true,
           email_notifications: false,
           push_notifications: false,
@@ -44,7 +44,7 @@ export function useNotificationPreferences() {
       // Set default preferences on error
       setPreferences({
         id: '',
-        user_name: 'Amela',
+        user_name: 'Boris',
         toast_notifications: true,
         email_notifications: false,
         push_notifications: false,
@@ -72,7 +72,7 @@ export function useNotificationPreferences() {
           event: '*',
           schema: 'public',
           table: 'boris_notification_preferences',
-          filter: `user_name=eq.Amela`,
+          filter: `user_name=eq.Boris`,
         },
         () => {
           fetchPreferences();

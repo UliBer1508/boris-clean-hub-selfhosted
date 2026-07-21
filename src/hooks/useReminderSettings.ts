@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
-const STORAGE_KEY = 'amela_reminder_settings_v1';
+const STORAGE_KEY = 'boris_reminder_settings_v1';
 
 export interface ReminderSettings {
   enabled: boolean;
@@ -35,10 +35,10 @@ export const useReminderSettings = () => {
     };
     const local = () => setSettings(read());
     window.addEventListener('storage', handler);
-    window.addEventListener('amela:reminder-settings-changed', local);
+    window.addEventListener('boris:reminder-settings-changed', local);
     return () => {
       window.removeEventListener('storage', handler);
-      window.removeEventListener('amela:reminder-settings-changed', local);
+      window.removeEventListener('boris:reminder-settings-changed', local);
     };
   }, []);
 
@@ -46,7 +46,7 @@ export const useReminderSettings = () => {
     setSettings((prev) => {
       const merged = { ...prev, ...next };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-      window.dispatchEvent(new Event('amela:reminder-settings-changed'));
+      window.dispatchEvent(new Event('boris:reminder-settings-changed'));
       return merged;
     });
   }, []);
