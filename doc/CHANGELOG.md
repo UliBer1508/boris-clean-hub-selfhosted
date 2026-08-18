@@ -10,6 +10,91 @@ this file.
 
 
 ---
+
+## [Boris 1.1.0] - 2026-08-18
+
+### Kalender: Belegungsraster statt Terminliste
+
+Die Wochenansicht des Kalenders zeigt jetzt Belegung und Auftrag im selben Bild
+(Zeile = Haus, Spalte = Tag, vier Wochen untereinander). Beschreibung in
+`doc/Boris Zweck Ablauf und Zusammenspiel_2.txt`, Abschnitt 3a.
+
+#### Neue Dateien
+- `src/lib/belegung.ts` — Belegungslogik (`getDayInfo`, `getCellStyle`) und
+  Hausfarben (`getHouseColors`). Wörtlich aus `HouseStackedCalendar.tsx` bzw.
+  `src/lib/utils.ts` der Hausverwaltung übernommen, damit „Wechseltag" und die
+  Hausfarben überall dasselbe bedeuten. **Inhaltsgleich in allen Portal-Repos.**
+- `src/components/Belegungsraster.tsx` — die Darstellung. Portalneutral: kennt
+  weder Provider noch Rolle; wer welche Aufgaben sieht, entscheidet die
+  aufrufende Seite.
+
+#### Fehlerbehebung
+- **Der Kalender filterte nicht nach `provider_id`.** `src/pages/Calendar.tsx`
+  importierte `PROVIDER_ID` nicht und baute seine Termine aus **allen**
+  `service_tasks` aller Buchungen. Die dokumentierte Regel („Das Portal zeigt
+  ausschließlich Reinigungen mit `provider_id = 193a013f…`", Abschnitt 1 der
+  Portal-Doku) war dort nicht umgesetzt — der Kalender verließ sich
+  unausgesprochen auf die Datenbank. Jetzt steht der Filter explizit im Code,
+  an beiden Datenquellen.
+  **Derselbe Zustand besteht in Amelas Portal** (`Calendar.tsx` ist bis auf zwei
+  Zeilen identisch) und wird beim Übertragen des Rasters mitbehoben.
+  Dies ist der **zweite** Fund dieser Art: am 21.07. lief bereits
+  `totalCleaningTasks` am Provider-Filter vorbei. Beide Male war die angezeigte
+  Liste korrekt und eine Nebenstelle nicht.
+- **Reinigungen ohne Buchung fehlten im Kalender vollständig.** Die Termine
+  wurden ausschließlich aus `booking.service_tasks` gebaut; Standalone-Aufgaben
+  (`booking_id is null`) — Fensterreinigung, Generalreinigung — tauchten nicht
+  auf. Fensterputzen ist laut Portal-Doku einer der beiden Gründe für dieses
+  Portal. Sie kommen jetzt aus `useBookings().standaloneCleanings` dazu, ohne
+  zusätzliche Abfrage.
+- **Eigene Hausfarben-Tabelle entfernt.** `Calendar.tsx` färbte Wald grün und
+  Venediger violett; Hausverwaltung und Website nutzen cyan und amber. Farben
+  kommen jetzt aus `belegung.ts`. Betrifft auch die Monatsansicht.
+
+#### Geändert
+- `src/hooks/useAllBookings.ts`
+  - `houses` als `!inner` mit `.eq('houses.rental_type','tourist')`. Ohne den
+    Filter kämen die Dauermietobjekte als eigene Zeilen ins Raster; `useHouses`
+    filtert seit jeher so, die Buchungsabfrage nicht.
+  - `linen_orders` mitgeladen (id, status, delivery_date, delivery_time,
+    total_items) — der Kalender braucht sie für den Wäsche-Streifen. Bisher lud
+    sie nur `useBookings`.
+  - Realtime-Kanal für `linen_orders` ergänzt, sonst bliebe eine gerade als
+    geliefert gemeldete Bestellung im Raster offen stehen.
+- `src/pages/Calendar.tsx`
+  - Wochenansicht durch `<Belegungsraster>` ersetzt; die Blöcke „Wochenliste"
+    und „Kommende Wochen" entfallen, das Raster deckt beides ab.
+  - Schaltfläche „Woche" heißt jetzt „Belegung"; der Zeitraumtitel nennt alle
+    vier Wochen statt nur einer.
+  - Monatsansicht und Detail-Sheet unverändert (nur die Farben ändern sich).
+
+#### Neu im Raster
+- **Wäsche-Streifen** am unteren Zellenrand, gepaart über `booking_id` — nicht
+  über das Datum. Grün = geliefert, grau = offen.
+- **Roter Rahmen**, wenn die Reinigung ansteht und die zugehörige Wäsche nicht
+  geliefert ist. Dieselbe Bedingung, die `max-linen-reminders` für Teunis
+  Erinnerungen auswertet — hier dauerhaft sichtbar statt nur in einer Nachricht.
+- **Kollisionspunkt** (amber), wenn beide Häuser am selben Tag eine Reinigung
+  haben. Das war seit dem 27.07.2026 als offener Punkt in
+  `docs/Session-2026-07-27-Kalender-Neubau.md` der Hausverwaltung vermerkt, dort
+  aber nie gebaut.
+
+#### Bewusst NICHT geändert
+- Amelas Reinigungen erscheinen **gar nicht**, auch nicht ausgegraut. Das folgt
+  der Portal-Doku („Amelas Reinigungen sind unsichtbar"). Ein grauer Hinweis
+  wäre fachlich vertretbar (Boris sähe, welcher Wechseltag schon abgedeckt ist),
+  ist aber eine eigene Entscheidung.
+- Monatsansicht bleibt bestehen — Rückweg, falls sich das Raster nicht bewährt.
+
+#### Geprüft / nicht geprüft
+- Syntax aller vier Dateien mit `esbuild` — das prüft **nur** Syntax, keine
+  Typen und keine Spaltenexistenz.
+- Feldnamen einzeln gegen `src/integrations/supabase/types.ts` belegt.
+- Das `!inner` mit `.eq('houses.rental_type','tourist')` ist dasselbe Muster,
+  das Teunis `CalendarView.tsx` produktiv nutzt.
+- **Nicht geprüft:** Verhalten in der laufenden App. Nach dem Deploy: Startseite
+  muss unverändert sein, im Raster dürfen nur Boris' Termine stehen.
+
 ---
 
 ## [Boris 1.0.0] - 2026-07-21
