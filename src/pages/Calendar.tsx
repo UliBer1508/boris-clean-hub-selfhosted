@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Home, Calendar as CalendarIcon, Bell, MessageCircle, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Calendar as CalendarIcon, Bell, MessageCircle } from 'lucide-react';
 import Footer, { CopyrightLine } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,12 @@ import { usePWA } from '@/hooks/usePWA';
 import ReminderSettingsPopover from '@/components/boris/ReminderSettingsPopover';
 import PullToRefresh from '@/components/PullToRefresh';
 import {
-  format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay,
+  format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, startOfWeek, endOfWeek, addWeeks, subWeeks,
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { ChatButton } from '@/components/PortalChat';
 import { usePortalMessages } from '@/hooks/usePortalMessages';
-import { cn } from '@/lib/utils';
 import { getGuestName } from '@/lib/guestHelpers';
 import { PROVIDER_ID } from '@/constants/app';
 import Belegungsraster, { type RasterAufgabe, type RasterHaus } from '@/components/Belegungsraster';
@@ -153,11 +152,6 @@ const Calendar = ({ chatProps }: CalendarProps) => {
     return events;
   }, [allBookings, standaloneCleanings]);
 
-  const eventsForDay = (day: Date) =>
-    cleaningEvents
-      .filter(e => isSameDay(e.date, day))
-      .sort((a, b) => (a.scheduledTime || '').localeCompare(b.scheduledTime || ''));
-
   // ---------------------------------------------------------------------
   // Daten für das Belegungsraster
   // ---------------------------------------------------------------------
@@ -248,14 +242,15 @@ const Calendar = ({ chatProps }: CalendarProps) => {
       });
   }, [cleaningEvents, houses, allBookings]);
 
-  // Monat: volles Kalendergitter (Mo–So)
-  const monthGridDays = useMemo(() => {
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    return eachDayOfInterval({
-      start: startOfWeek(monthStart, { weekStartsOn: 1 }),
-      end: endOfWeek(monthEnd, { weekStartsOn: 1 }),
-    });
+  // Monatsansicht: dasselbe Raster, nur über den ganzen Monat statt über vier
+  // Wochen. Das Raster rendert volle Wochen (Mo–So), deshalb wird gezählt, wie
+  // viele Wochen zwischen dem Montag vor dem Monatsersten und dem Sonntag nach
+  // dem Monatsletzten liegen — je nach Monat fünf oder sechs.
+  const monatsWochen = useMemo(() => {
+    const ersterMontag = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 });
+    const letzterSonntag = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 1 });
+    const tage = eachDayOfInterval({ start: ersterMontag, end: letzterSonntag }).length;
+    return Math.round(tage / 7);
   }, [currentDate]);
 
   const goToToday = () => setCurrentDate(new Date());
@@ -271,7 +266,6 @@ const Calendar = ({ chatProps }: CalendarProps) => {
       ? `${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'd. MMM', { locale: de })} – ${format(endOfWeek(addWeeks(currentDate, 3), { weekStartsOn: 1 }), 'd. MMM yyyy', { locale: de })}`
       : format(currentDate, 'MMMM yyyy', { locale: de });
 
-  const weekdayHeader = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
   const openDetail = (taskId: string) => {
     setSelectedTaskId(taskId);
@@ -408,56 +402,28 @@ const Calendar = ({ chatProps }: CalendarProps) => {
             </CardContent>
           </Card>
         ) : (
-          /* ---------- MONATSANSICHT ---------- */
+          /* ---------- MONATSANSICHT: dasselbe Raster über den ganzen Monat ----------
+             Bis 18.08.2026 stand hier ein 7-Spalten-Gitter mit einem Chip je
+             Reinigung. Es zeigte nur Termine, keine Belegung — dieselbe
+             Schwäche wie die alte Wochenliste. Jetzt dieselbe Darstellung wie
+             in der Belegungsansicht und in der Hausverwaltung.
+             Ohne Aufgabenliste: im Monat geht es um den Überblick. */
           <Card>
             <CardContent className="p-3 md:p-4">
-              <div className="grid grid-cols-7 gap-1">
-                {weekdayHeader.map(d => (
-                  <div key={d} className="p-2 text-center text-sm font-medium text-muted-foreground">{d}</div>
-                ))}
-                {monthGridDays.map((day, idx) => {
-                  const dayEvents = eventsForDay(day);
-                  const isCurrentMonth = isSameMonth(day, currentDate);
-                  const todayFlag = isToday(day);
-                  const shown = dayEvents.slice(0, 3);
-                  const hidden = dayEvents.length - shown.length;
-                  return (
-                    <div
-                      key={idx}
-                      className={cn(
-                        'min-h-[76px] sm:min-h-[92px] p-1.5 border border-border rounded-sm',
-                        isCurrentMonth ? 'bg-surface-tint' : 'bg-muted/40 text-muted-foreground',
-                        todayFlag && 'ring-2 ring-primary ring-inset'
-                      )}
-                    >
-                      <div className="text-sm font-medium mb-1">{format(day, 'd')}</div>
-                      <div className="space-y-1">
-                        {shown.map(event => {
-                          const color = getHouseColor(event.house_id, event.house);
-                          return (
-                            <button
-                              key={event.id}
-                              type="button"
-                              onClick={() => openDetail(event.taskId)}
-                              style={{ backgroundColor: color }}
-                              className="w-full text-[10px] sm:text-xs px-1.5 py-0.5 rounded text-white flex items-center gap-1 truncate active:opacity-80"
-                              title={`${event.house}${event.scheduledTime ? ' · ' + event.scheduledTime.slice(0, 5) : ''}`}
-                            >
-                              <Sparkles className="w-3 h-3 shrink-0" />
-                              <span className="truncate">
-                                {event.scheduledTime ? event.scheduledTime.slice(0, 5) + ' ' : ''}{event.house}
-                              </span>
-                            </button>
-                          );
-                        })}
-                        {hidden > 0 && (
-                          <div className="text-[10px] sm:text-xs text-muted-foreground">+{hidden} weitere</div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <Belegungsraster
+                haeuser={rasterHaeuser}
+                buchungen={rasterBuchungen}
+                meineAufgaben={rasterAufgaben}
+                infoAufgaben={rasterWaesche}
+                startDatum={startOfMonth(currentDate)}
+                wochen={monatsWochen}
+                zeigeAufgabenliste={false}
+                monatFokus={currentDate}
+                meinSymbol="🧹"
+                meinName="Reinigung"
+                infoName="Wäsche"
+                onAufgabeClick={openDetail}
+              />
             </CardContent>
           </Card>
         )}
