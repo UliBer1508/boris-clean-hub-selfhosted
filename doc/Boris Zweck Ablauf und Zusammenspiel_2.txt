@@ -1,6 +1,6 @@
 # Boris Reinigungsportal — Zweck, Ablauf & Zusammenspiel
 
-> Stand: 21.07.2026
+> Stand: 18.08.2026 (Erstfassung 21.07.2026)
 > Repo: `boris-clean-hub-selfhosted` · gehostet auf `boris-clean-hub-selfhosted.vercel.app`
 > Entstanden als Kopie von `amela-clean-hub-selfhosted` (GitHub-Template, 21.07.2026).
 > Diese Datei beschreibt, **wofür** das Portal da ist und **wie** es genutzt wird.
@@ -59,6 +59,8 @@ mehr `cleaning_hours` auf demselben Task — keine zweite Aufgabe.
 - **Reinigungsstatus** setzen (geplant → in Arbeit → abgeschlossen)
 - sehen, **wann die Wäsche geliefert** wird (aus dem Teuni-System)
 - Notizen / Checkliste zur Reinigung
+- im **Belegungsraster** sehen, ob ein Termin an einem Gästewechsel hängt
+  (siehe Abschnitt 3a)
 
 ### Was Boris NICHT tut
 
@@ -66,6 +68,60 @@ mehr `cleaning_hours` auf demselben Task — keine zweite Aufgabe.
 - Keine Reinigungen erstellen (kommen aus der Hausverwaltung)
 - Keine Wäschebestellungen
 - Keine Putzkräfte verwalten
+
+---
+
+## 3a. Der Kalender — Belegungsraster (NEU 18.08.2026)
+
+Der Kalender (`/calendar`, unten das zweite Symbol) hatte bis heute eine reine
+Terminliste: „am 16.08. Wald Chalet, 11:00". Damit war nicht erkennbar, **warum**
+an dem Tag gearbeitet wird und ob der Termin verschiebbar ist.
+
+Er zeigt jetzt dasselbe Raster wie die Hausverwaltung: **Zeile = Haus,
+Spalte = Tag**, vier Wochen untereinander.
+
+| Feld | Bedeutung |
+|---|---|
+| Vollton in der Hausfarbe | belegt |
+| diagonal geteilt, weiß → Farbe | Anreise |
+| diagonal geteilt, Farbe → weiß | Abreise |
+| diagonal geteilt, Farbe → Farbe | **Wechseltag** — abreisen und anreisen am selben Tag, Termin nicht verschiebbar |
+| weiß | frei — nach einer Abreise ist hier Luft |
+
+Dazu drei Markierungen:
+
+- **🧹 im Feld** = Boris' Reinigung. Grüner Rand = erledigt.
+- **Streifen am unteren Rand** = Wäsche. Grün = geliefert, grau = noch offen.
+  Reine Information, kein Auftrag — ohne frische Wäsche kann nicht gereinigt
+  werden.
+- **Roter Rahmen** = Reinigung steht an, Wäsche ist noch nicht da. Genau die
+  Lage, wegen der Max heute Erinnerungen an Teuni schickt.
+- **Amberfarbener Punkt** = beide Häuser haben am selben Tag eine Reinigung.
+
+Unter jeder Woche stehen die Aufträge im Klartext (Uhrzeit, Gastnamen,
+„Wechsel: X reist ab, Y kommt an"). Antippen öffnet die Detailansicht wie
+bisher. Die Monatsansicht bleibt unverändert erhalten.
+
+**Hausfarben:** Venediger amber, Wald cyan — identisch zu Hausverwaltung und
+Website. Vorher hatte dieses Portal eine eigene Tabelle mit Grün/Violett;
+dasselbe Haus sah in jedem System anders aus.
+
+**Reinigungen ohne Buchung** (Fensterreinigung, Generalreinigung) erscheinen
+jetzt ebenfalls im Kalender. Sie haben keinen Anreisetag und sitzen deshalb auf
+ihrem echten `scheduled_date`.
+
+### Wo die Logik liegt
+
+| Datei | Inhalt |
+|---|---|
+| `src/lib/belegung.ts` | Belegungslogik (`getDayInfo`, `getCellStyle`) und Hausfarben (`getHouseColors`) |
+| `src/components/Belegungsraster.tsx` | Darstellung, portalneutral — kennt weder Provider noch Rolle |
+| `src/pages/Calendar.tsx` | verknüpft beides mit den Daten dieses Portals |
+| `src/hooks/useAllBookings.ts` | lädt Buchungen, Reinigungen **und** Wäschebestellungen |
+
+Die ersten beiden Dateien sind **inhaltsgleich in allen Portal-Repos**. Wer sie
+hier ändert, muss sie in Amela und Teuni mitziehen — sonst bedeutet „Wechseltag"
+je nach Portal etwas anderes.
 
 ---
 
@@ -108,7 +164,7 @@ Vorhanden und erreichbar, aber für Boris nicht vorgesehen:
 | Funktion | Route / Datei | Warum ungenutzt |
 |---|---|---|
 | **Putzkräfte verwalten** | `/putzkraefte`, `PutzkraeftePage.tsx` | Boris stellt kein Personal ein. **Achtung:** `useCleaningStaff.ts` liest `cleaning_staff` **ungefiltert** — dort steht nur Amela mit E-Mail und Telefonnummer. Boris sähe ihre Kontaktdaten. |
-| **Kalenderansicht** | `/calendar`, `Calendar.tsx` | Für wenige Termine unnötig |
+| ~~**Kalenderansicht**~~ | `/calendar`, `Calendar.tsx` | **Seit 18.08.2026 in Betrieb** — siehe Abschnitt 3a. Die frühere Einschätzung „für wenige Termine unnötig" war der Grund, warum diese Seite bei der Umstellung von Amela auf Boris nie geprüft wurde. Sie enthielt bis heute **keinen** `provider_id`-Filter im Code. |
 | **Chat mit Max** | `PortalChat.tsx` | In Version 1 bewusst nicht aktiviert |
 | **Buchungskarte** | `BorisBookingInfoCard.tsx` | Boris braucht die Reinigungskarte; die Wäschezeile soll dorthin wandern |
 | **Standalone-Reinigung anlegen** | `AddStandaloneCleaningDialog.tsx` | Reinigungen kommen aus der Hausverwaltung |
@@ -147,9 +203,37 @@ Boris = `https://boris-clean-hub-selfhosted.vercel.app` (aktualisiert 21.07.2026
 ## 7. Bekannte offene Punkte
 
 - **Frontend-Reduktion** steht aus (siehe Abschnitt 5)
+- **Belegungsraster nach Amela und Teuni übertragen.** `belegung.ts` und
+  `Belegungsraster.tsx` sind dafür gebaut. Amelas `Calendar.tsx` ist zu dieser
+  Datei bis auf zwei Zeilen identisch (Import des ReminderSettingsPopover und
+  die Überschrift) — die Übertragung ist entsprechend klein.
+- **Hausverwaltung nachziehen:** `HouseStackedCalendar.tsx` definiert die
+  Belegungslogik weiterhin selbst. Solange das so bleibt, gibt es zwei
+  Definitionen von „Wechseltag". Vermerkt in `docs/CODE-INDEX.md`, Abschnitt 13c.
+- **Ablage in diesem Repo:** siehe Abschnitt 8.
 - **Boris hat keinen Eintrag in `cleaning_staff`** — nur Amela steht dort
 - **`NotificationSettings.tsx` und `useNotificationPreferences.ts` verwenden
   verschiedene Tabellen** (`notification_preferences` vs.
   `boris_notification_preferences`). Für Version 1 unverändert übernommen.
 - **Boris hat kein Max-Chat** — Terminfragen erreichen ihn nur über den
   Erinnerungs-Banner, nicht über eine Nachricht mit Antwortmöglichkeit
+
+---
+
+## 8. Ablage in diesem Repo (aufgenommen 18.08.2026)
+
+Beim Nachziehen der Doku sind fünf Dateien aufgefallen, die nicht dorthin
+gehören, wo sie liegen. Keine davon ist gefährlich für den Betrieb, aber jede
+kann jemanden auf einen falschen Stand führen.
+
+| Datei | Befund | Vorschlag |
+|---|---|---|
+| `CHANGELOG.md` (Repo-Root) | Alte **Amela**-Fassung, Version 1.0.0 vom 30.09.2025. Der gepflegte Changelog liegt in `doc/CHANGELOG.md`. Zwei Changelogs, einer falsch beschriftet. | Root-Datei löschen oder auf `doc/CHANGELOG.md` verweisen lassen |
+| `README.md` (Repo-Root) | Heißt „Amela Cleaning Portal", verweist auf ein Lovable-Projekt. Lovable wird seit 13.07.2026 nicht mehr genutzt. | Auf Boris umschreiben, Lovable-Verweis entfernen |
+| `src/hooks/docs/Amela-Portal-Zweck-und-Ablauf.md` | **Leer** (1 Byte) und im Quellcode-Verzeichnis. | löschen (Ordner `src/hooks/docs/` entfällt damit) |
+| `src/components/PortalChat.tsx.txt` | 8,7 KB Textkopie einer Komponente, **weicht vom echten `PortalChat.tsx` ab**. Ein Doppelgänger direkt neben dem Original — genau das Muster, vor dem `CODE-INDEX.md` Abschnitt 3 der Hausverwaltung warnt. | löschen |
+| `doc/Amela Zweck Ablauf und Zusammenspiel` | Amelas Portal-Doku, ohne Dateiendung, in Boris' Repo. Als Herkunftsbeleg sinnvoll, als Nachschlagewerk irreführend. | Endung `.md` ergänzen und Kopfzeile „Referenz aus dem Ursprungs-Repo, nicht dieses Portal" |
+
+Zusätzlich: Der Ordner heißt hier `doc/`, in der Hausverwaltung `docs/`.
+Angleichen wäre sauber, ist aber kein Fehler — nur eine Stolperstelle beim
+Suchen.
