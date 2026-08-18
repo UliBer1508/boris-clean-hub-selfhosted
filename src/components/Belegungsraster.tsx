@@ -252,15 +252,24 @@ const Belegungsraster = ({
                       )}
                       style={stil}
                     >
+                      {/* Gastname.
+                          Auf dem Handy ist eine Zelle rund 57 px breit. Symbol UND
+                          Name passen dort nicht nebeneinander: das Symbol braucht
+                          24 px, der Rest reicht fuer zwei Buchstaben ("Ch..."). In
+                          Zellen MIT eigener Aufgabe entfaellt der Name deshalb auf
+                          schmalen Schirmen — Diagonale plus Symbol sagt bereits
+                          "Wechseltag, hier arbeite ich". Der Name steht in der
+                          Aufgabenliste, im Tooltip und im Detailfenster.
+                          Ab `sm` (640 px) ist Platz fuer beides. */}
                       {beschriftung && (
                         <span
                           className={cn(
-                            'absolute inset-y-0 left-0 flex items-center',
-                            meine ? 'right-[24px]' : 'right-0'
+                            'absolute inset-0 items-center pl-1',
+                            meine ? 'hidden sm:flex sm:pr-7' : 'flex pr-1'
                           )}
                         >
                           <span
-                            className="w-full px-1 text-[10px] font-semibold text-center truncate"
+                            className="w-full text-[10px] font-semibold text-center truncate"
                             style={{ color: hc.text }}
                           >
                             {beschriftung.split(' ')[0]}
