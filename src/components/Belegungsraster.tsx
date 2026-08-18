@@ -255,20 +255,24 @@ const Belegungsraster = ({
                       {beschriftung && (
                         <span
                           className={cn(
-                            'absolute inset-0 flex items-center justify-center text-[10px] font-semibold truncate',
-                            meine ? 'pl-0.5 pr-6' : 'px-0.5'
+                            'absolute inset-y-0 left-0 flex items-center',
+                            meine ? 'right-[24px]' : 'right-0'
                           )}
-                          style={{ color: hc.text }}
                         >
-                          {beschriftung.split(' ')[0]}
+                          <span
+                            className="w-full px-1 text-[10px] font-semibold text-center truncate"
+                            style={{ color: hc.text }}
+                          >
+                            {beschriftung.split(' ')[0]}
+                          </span>
                         </span>
                       )}
 
                       {meine && (
                         <span
                           className={cn(
-                            'absolute top-0.5 right-0.5 w-5 h-5 rounded-full border-2 bg-card',
-                            'flex items-center justify-center text-[10px] leading-none shadow-sm z-10',
+                            'absolute top-0.5 right-0.5 w-[22px] h-[22px] rounded-full border-2 bg-card',
+                            'flex items-center justify-center text-[13px] leading-none shadow-sm z-10',
                             istErledigt(meine.status) ? 'border-green-600' : gefaehrdet ? 'border-destructive' : 'border-primary'
                           )}
                         >
@@ -377,11 +381,31 @@ const Belegungsraster = ({
           Wechseltag
         </span>
         <span className="flex items-center gap-1.5">
+          <span
+            className="w-6 h-3.5 rounded-sm border"
+            style={{
+              background: 'linear-gradient(135deg,#ffffff 0%,#ffffff 42%,#9ca3af 42%,#9ca3af 58%,#fbbf24 58%,#fbbf24 100%)',
+              borderColor: '#d97706',
+            }}
+          />
+          Anreise
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="w-6 h-3.5 rounded-sm border"
+            style={{
+              background: 'linear-gradient(135deg,#fbbf24 0%,#fbbf24 42%,#9ca3af 42%,#9ca3af 58%,#ffffff 58%,#ffffff 100%)',
+              borderColor: '#d97706',
+            }}
+          />
+          Abreise
+        </span>
+        <span className="flex items-center gap-1.5">
           <span className="w-6 h-3.5 rounded-sm border border-border bg-card" />
           frei
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-5 h-5 rounded-full border-2 border-primary bg-card flex items-center justify-center text-[10px] leading-none">
+          <span className="w-[22px] h-[22px] rounded-full border-2 border-primary bg-card flex items-center justify-center text-[13px] leading-none">
             {meinSymbol}
           </span>
           {meinName}
