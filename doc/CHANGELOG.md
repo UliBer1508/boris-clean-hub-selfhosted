@@ -64,9 +64,20 @@ Die Wochenansicht des Kalenders zeigt jetzt Belegung und Auftrag im selben Bild
 - `src/pages/Calendar.tsx`
   - Wochenansicht durch `<Belegungsraster>` ersetzt; die Blöcke „Wochenliste"
     und „Kommende Wochen" entfallen, das Raster deckt beides ab.
+  - **Monatsansicht ebenfalls auf das Raster umgestellt.** Vorher ein
+    7-Spalten-Gitter mit einem Chip je Reinigung — nur Termine, keine Belegung.
+    Jetzt dasselbe Raster über den ganzen Monat (fünf oder sechs Wochen,
+    abhängig vom Monat), ohne Auftragszeilen und mit blassen Nachbartagen.
+    Entfallen sind dadurch `monthGridDays`, `eventsForDay` und `weekdayHeader`
+    samt der Importe `isSameMonth`, `isSameDay`, `isToday`, `cn` und `Sparkles`.
   - Schaltfläche „Woche" heißt jetzt „Belegung"; der Zeitraumtitel nennt alle
     vier Wochen statt nur einer.
   - Monatsansicht und Detail-Sheet unverändert (nur die Farben ändern sich).
+
+#### Zwei neue Schalter an `Belegungsraster`
+- `zeigeAufgabenliste` (Vorgabe `true`) — im Monatsmodus `false`.
+- `monatFokus` — blendet Tage ausserhalb des angegebenen Monats ab und
+  unterdrückt die Wochen-Zwischenüberschriften.
 
 #### Neu im Raster
 - **Wäsche-Streifen** am unteren Zellenrand, gepaart über `booking_id` — nicht
@@ -84,7 +95,9 @@ Die Wochenansicht des Kalenders zeigt jetzt Belegung und Auftrag im selben Bild
   der Portal-Doku („Amelas Reinigungen sind unsichtbar"). Ein grauer Hinweis
   wäre fachlich vertretbar (Boris sähe, welcher Wechseltag schon abgedeckt ist),
   ist aber eine eigene Entscheidung.
-- Monatsansicht bleibt bestehen — Rückweg, falls sich das Raster nicht bewährt.
+- Der Umschalter „Belegung / Monat" bleibt. Beide Ansichten zeigen dasselbe
+  Raster, unterscheiden sich aber im Zeitraum: vier Wochen ab heute für die
+  Arbeit, ein ganzer Monat für den Überblick.
 
 #### Geprüft / nicht geprüft
 - Syntax aller vier Dateien mit `esbuild` — das prüft **nur** Syntax, keine
