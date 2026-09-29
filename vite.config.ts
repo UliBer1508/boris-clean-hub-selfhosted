@@ -1,18 +1,16 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   server: {
     host: "::",
     port: 8080,
   },
   plugins: [
     react(), 
-    mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192x192.png', 'icon-512x512.png', 'icon-180x180.png', 'icon-384x384.png', 'icon-152x152.png', 'robots.txt', 'splash-1125x2436.png'],
@@ -44,18 +42,6 @@ export default defineConfig(({ mode }) => ({
               },
               cacheableResponse: {
                 statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/.*\.lovableproject\.com\//,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'lovable-api-cache',
-              networkTimeoutSeconds: 3,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5 // 5 Minuten
               }
             }
           },
