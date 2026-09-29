@@ -248,7 +248,7 @@ kann jemanden auf einen falschen Stand führen.
 | Datei | Befund | Vorschlag |
 |---|---|---|
 | `CHANGELOG.md` (Repo-Root) | Alte **Amela**-Fassung, Version 1.0.0 vom 30.09.2025. Der gepflegte Changelog liegt in `doc/CHANGELOG.md`. Zwei Changelogs, einer falsch beschriftet. | Root-Datei löschen oder auf `doc/CHANGELOG.md` verweisen lassen |
-| `README.md` (Repo-Root) | Heißt „Amela Cleaning Portal", verweist auf ein Lovable-Projekt. Lovable wird seit 13.07.2026 nicht mehr genutzt. | Auf Boris umschreiben, Lovable-Verweis entfernen |
+| `README.md` (Repo-Root) | ~~Hieß „Amela Cleaning Portal“, verwies auf ein Lovable-Projekt.~~ **Erledigt 29.09.2026:** auf Boris umgeschrieben, alle Lovable-Reste aus dem Repo entfernt. | — |
 | `src/hooks/docs/Amela-Portal-Zweck-und-Ablauf.md` | **Leer** (1 Byte) und im Quellcode-Verzeichnis. | löschen (Ordner `src/hooks/docs/` entfällt damit) |
 | `src/components/PortalChat.tsx.txt` | 8,7 KB Textkopie einer Komponente, **weicht vom echten `PortalChat.tsx` ab**. Ein Doppelgänger direkt neben dem Original — genau das Muster, vor dem `CODE-INDEX.md` Abschnitt 3 der Hausverwaltung warnt. | löschen |
 | `doc/Amela Zweck Ablauf und Zusammenspiel` | Amelas Portal-Doku, ohne Dateiendung, in Boris' Repo. Als Herkunftsbeleg sinnvoll, als Nachschlagewerk irreführend. | Endung `.md` ergänzen und Kopfzeile „Referenz aus dem Ursprungs-Repo, nicht dieses Portal" |
