@@ -20,6 +20,8 @@ import CleaningReminderBanner from "@/components/boris/CleaningReminderBanner";
 import ReminderSettingsPopover from "@/components/boris/ReminderSettingsPopover";
 import { ChatButton } from '@/components/PortalChat';
 import { usePortalMessages } from '@/hooks/usePortalMessages';
+import { useNeueAuftraege } from '@/hooks/useNeueAuftraege';
+import NeuerAuftragDialog from '@/components/NeuerAuftragDialog';
 import {
   Home,
   Search,
@@ -108,40 +110,26 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
 
 
 
-  // Realtime: NUR INSERT für Bell-Badge/Toast. Datenrefresh + UPDATE-Events erledigt useBookings.
-  useEffect(() => {
-    const channel = supabase
-      .channel('boris-portal-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'service_tasks',
-          filter: `provider_id=eq.${PROVIDER_ID}`,
-        },
-        (payload) => {
-          console.log('🆕 Neuer Reinigungsauftrag:', payload);
-          setHasUnreadNotifications(true);
-          setNewTaskCount((prev) => prev + 1);
-          notify({
-            title: '🆕 Neuer Reinigungsauftrag',
-            description: 'Ein neuer Auftrag wurde zugewiesen.',
-            eventType: 'new_task',
-            duration: 5000,
-          });
-          if (preferences?.sound_notifications) {
-            const audio = new Audio('/notification-sound.mp3');
-            audio.play().catch((e) => console.log('Sound konnte nicht abgespielt werden:', e));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [notify, preferences]);
+  // Neue Reinigung als Info-Pop-up (06.10.2026). Ersetzt den früheren
+  // 5-Sekunden-Toast beim INSERT: gemeldet wird jetzt, sobald eine Reinigung
+  // auf "geplant" steht — auch wenn das Portal zwischendurch zu war.
+  // Glocke und Ton bleiben. Kein Eintrag im Chat.
+  const beiNeuenAuftraegen = useCallback(
+    (anzahl: number) => {
+      setHasUnreadNotifications(true);
+      setNewTaskCount((prev) => prev + anzahl);
+      if (preferences?.sound_notifications) {
+        const audio = new Audio('/notification-sound.mp3');
+        audio.play().catch((e) => console.log('Sound konnte nicht abgespielt werden:', e));
+      }
+    },
+    [preferences]
+  );
+  const neueAuftraege = useNeueAuftraege(
+    PROVIDER_ID,
+    preferences?.notify_new_tasks !== false,
+    beiNeuenAuftraegen
+  );
 
   const { houses: allHouses = [], loading: housesLoading } = useHouses();
   const houses = allHouses.filter((house) => house.rental_type === 'tourist');
@@ -547,6 +535,11 @@ const CleaningPortal = ({ chatProps }: CleaningPortalProps) => {
         </button>
       </div>
     </nav>
+    <NeuerAuftragDialog
+      auftrag={neueAuftraege.aktueller}
+      weitere={Math.max(0, neueAuftraege.anzahl - 1)}
+      onClose={neueAuftraege.schliessen}
+    />
     </>
   );
 
