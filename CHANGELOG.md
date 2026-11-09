@@ -1,5 +1,21 @@
 # Changelog
 
+## 09.11.2026 – E-Mail-Erinnerung an Reinigungen
+
+- **Neu im Dialog „Erinnerung"** (`src/components/boris/ReminderSettingsPopover.tsx`):
+  Boris stellt selbst ein, ob er per E-Mail erinnert wird, an welche Adresse,
+  wann (am Reinigungstag bis 7 Tage vorher) und um wie viel Uhr. Mit Button
+  „Test-Mail senden".
+- **Neuer Hook** `src/hooks/useEmailReminder.ts`: liest/schreibt die Einstellung
+  in `notification_preferences` (Zeile `user_name = 'Boris'`, Spalten
+  `email_address`, `email_reminder_enabled`, `email_reminder_days_before`,
+  `email_reminder_hour`, `provider_id`). Bewusst in der Datenbank statt im
+  localStorage, weil der Server die Mail verschickt.
+- Versand: Edge Function `reinigung-erinnerung` in `hausmanagement-selfhosted`
+  (stündlicher Cron). Voraussetzung: dort SQL `68_reinigung_erinnerung_email.sql`
+  eingespielt und die Function deployt.
+- Popup-Erinnerung (Tage vorher, localStorage) unverändert.
+
 All notable changes to the Amela Cleaning Portal project will be documented in this file.
 
 ## [1.0.0] - 2025-09-30
