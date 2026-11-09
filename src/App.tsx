@@ -14,6 +14,8 @@ import PortalChat from "./components/PortalChat";
 import { usePWAAnalytics } from "./hooks/usePWAAnalytics";
 import { usePortalSession } from "./hooks/usePortalAuth";
 import PortalLogin from "./pages/PortalLogin";
+import PortalGesperrt from "./components/PortalGesperrt";
+import { usePortalSperre } from "./hooks/usePortalSperre";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient({
@@ -35,6 +37,7 @@ const AppContent = () => {
   usePWAAnalytics();
   const { session, loading } = usePortalSession();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const gesperrt = usePortalSperre(!!session);
 
   if (loading) {
     return (
@@ -46,6 +49,10 @@ const AppContent = () => {
 
   if (!session) {
     return <PortalLogin />;
+  }
+
+  if (gesperrt) {
+    return <PortalGesperrt />;
   }
 
   return (

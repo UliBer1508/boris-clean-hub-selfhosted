@@ -1,5 +1,15 @@
 # Changelog
 
+## 09.11.2026 – Portal-Sperre
+
+- Schaltet Uli Boris in der Provider Verwaltung der Hausverwaltung auf inaktiv
+  und kreuzt „Portal sperren" an, zeigt das Portal nur noch „Zugang deaktiviert".
+- Neu: `src/hooks/usePortalSperre.ts`, `src/components/PortalGesperrt.tsx`,
+  `src/lib/providerStatus.ts` (Kopie aus hausmanagement-selfhosted), Einbindung
+  in `src/App.tsx` nach der Anmeldung.
+- Im Zweifel offen: Ist der Status nicht lesbar, bleibt das Portal benutzbar.
+- Voraussetzung: SQL `69_dienstleister_inaktiv_wirkung.sql` in der Hausverwaltung.
+
 ## 09.11.2026 – E-Mail-Erinnerung an Reinigungen
 
 - **Neu im Dialog „Erinnerung"** (`src/components/boris/ReminderSettingsPopover.tsx`):
